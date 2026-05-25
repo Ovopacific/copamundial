@@ -1,0 +1,35 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Reglas para la colección de usuarios (Perfiles)
+    match /users/{userId} {
+      // Cualquiera puede leer los perfiles (para el Ranking)
+      allow read: if true;
+      // Un usuario solo puede crear su propio perfil al registrarse
+      allow create: if request.auth != null && request.auth.uid == userId;
+      // Los usuarios pueden actualizar sus nombres, pero no sus puntos (eso lo hace el Admin)
+      allow update: if request.auth != null && request.auth.uid == userId 
+                    && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['points', 'exactScores', 'correctResults']);
+    }
+
+    // Reglas para la colección de partidos
+    match /matches/{matchId} {
+      // Cualquiera puede leer los partidos
+      allow read: if true;
+      // Solo los administradores pueden crear, modificar o eliminar partidos
+      // (Aquí deberías añadir el UID del admin, por ejemplo: request.auth.uid == 'TU_UID_ADMIN')
+      allow write: if request.auth != null && request.auth.token.email == "tu_correo_admin@gmail.com";
+    }
+
+    // Reglas para los pronósticos (Predictions)
+    match /predictions/{predictionId} {
+      // Un usuario puede ver sus propios pronósticos y los de otros (para el ranking)
+      allow read: if true;
+      // Un usuario puede guardar pronósticos SOLO si está autenticado
+      // y si el partido correspondiente sigue en estado 'pending' (Esto asegura que no hagan trampa)
+      allow create, update: if request.auth != null 
+                            && request.resource.data.userId == request.auth.uid;
+    }
+  }
+}
