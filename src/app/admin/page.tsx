@@ -55,7 +55,7 @@ export default function AdminPage() {
           if (
             data.role === "admin" || 
             data.isAdmin === true || 
-            user.email === "tu_correo_admin@gmail.com" ||
+            user.email === "yolfranllecastillo@gmail.com" ||
             process.env.NODE_ENV === "development" // Auto-grant admin in local development for easier testing
           ) {
             setIsAdmin(true);
