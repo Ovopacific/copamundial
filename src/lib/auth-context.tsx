@@ -36,33 +36,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
-      
-      if (currentUser) {
-        // Check if user exists in Firestore, if not create profile
-        try {
-          const userRef = doc(db, "users", currentUser.uid);
-          const userSnap = await getDoc(userRef);
-          
-          if (!userSnap.exists()) {
-            await setDoc(userRef, {
-              uid: currentUser.uid,
-              name: currentUser.displayName,
-              email: currentUser.email,
-              photoURL: currentUser.photoURL,
-              points: 0,
-              correctResults: 0,
-              correctPredictions: 0,
-              exactScores: 0,
-              createdAt: new Date()
-            });
-          }
-        } catch (error) {
-          console.error("Error creating user profile:", error);
-        }
-      }
-      
       setLoading(false);
     });
 
