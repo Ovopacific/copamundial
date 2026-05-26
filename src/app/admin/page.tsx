@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { motion, AnimatePresence } from "framer-motion";
-import { Settings, Plus, Save, Activity, Lock, AlertCircle, Eye, X, Users, BarChart2, TrendingUp } from "lucide-react";
+import { Settings, Plus, Save, Activity, Lock, AlertCircle, Eye, X, Users, BarChart2, TrendingUp, Trash2 } from "lucide-react";
 import { Match, MatchStatus, Prediction, User as CustomUser } from "@/types";
 import { db } from "@/lib/firebase";
 import { 
@@ -12,6 +12,7 @@ import {
   doc, 
   setDoc, 
   updateDoc, 
+  deleteDoc,
   getDoc, 
   getDocs, 
   query, 
@@ -216,6 +217,19 @@ export default function AdminPage() {
       alert("Error al guardar cambios en el partido.");
     } finally {
       setSavingId(null);
+    }
+  };
+  const handleDeleteMatch = async (matchId: string) => {
+    if (!db) return;
+    const confirmDelete = window.confirm("¿Estás seguro de que deseas eliminar este partido? Esta acción no se puede deshacer y los pronósticos asociados quedarán huérfanos.");
+    if (!confirmDelete) return;
+
+    try {
+      await deleteDoc(doc(db, "matches", matchId));
+      alert("Partido eliminado con éxito.");
+    } catch (error) {
+      console.error("Error deleting match:", error);
+      alert("Error al eliminar el partido.");
     }
   };
 
@@ -428,6 +442,14 @@ export default function AdminPage() {
                       ) : (
                         <Save className="w-5 h-5" />
                       )}
+                    </button>
+                    
+                    <button 
+                      onClick={() => handleDeleteMatch(match.id)}
+                      className="p-2.5 rounded-lg bg-red-500/20 text-red-500 hover:bg-red-500/40 transition-colors"
+                      title="Eliminar partido"
+                    >
+                      <Trash2 className="w-5 h-5" />
                     </button>
                   </div>
                 </div>

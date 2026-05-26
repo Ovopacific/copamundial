@@ -23,58 +23,8 @@ export default function MatchesBoard() {
 
     const unsubscribe = onSnapshot(collection(db, "matches"), async (snapshot) => {
       if (snapshot.empty) {
-        // Auto-seed database with default matches for testing/demonstration
-        const SEED_MATCHES = [
-          {
-            id: "m1",
-            homeTeam: "Argentina",
-            awayTeam: "Francia",
-            homeFlag: "🇦🇷",
-            awayFlag: "🇫🇷",
-            date: new Date(Date.now() + 86400000), // Tomorrow
-            status: "pending"
-          },
-          {
-            id: "m2",
-            homeTeam: "Brasil",
-            awayTeam: "Alemania",
-            homeFlag: "🇧🇷",
-            awayFlag: "🇩🇪",
-            date: new Date(Date.now() + 172800000), // In 2 days
-            status: "pending"
-          },
-          {
-            id: "m3",
-            homeTeam: "España",
-            awayTeam: "Inglaterra",
-            homeFlag: "🇪🇸",
-            awayFlag: "🇬🇧",
-            date: new Date(Date.now() - 3600000), // 1 hour ago
-            status: "live",
-            homeScore: 1,
-            awayScore: 1
-          },
-          {
-            id: "m4",
-            homeTeam: "Portugal",
-            awayTeam: "Uruguay",
-            homeFlag: "🇵🇹",
-            awayFlag: "🇺🇾",
-            date: new Date(Date.now() - 86400000), // Yesterday
-            status: "finished",
-            homeScore: 2,
-            awayScore: 0,
-            processed: true
-          }
-        ];
-
-        try {
-          for (const m of SEED_MATCHES) {
-            await setDoc(doc(db, "matches", m.id), m);
-          }
-        } catch (error) {
-          console.error("Error seeding matches:", error);
-        }
+        setMatches([]);
+        setLoading(false);
         return;
       }
 
