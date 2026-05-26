@@ -8,7 +8,7 @@ import {
   signInWithPopup, 
   signOut as firebaseSignOut 
 } from "firebase/auth";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
 import { auth, db } from "./firebase";
 
 interface AuthContextType {
@@ -36,8 +36,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
+      if (currentUser && db) {
+        try {
+          const userRef = doc(db, "users", currentUser.uid);
+          // Only update lastConnection, do not overwrite other fields
+          await updateDoc(userRef, {
+            lastConnection: new Date()
+          });
+        } catch (error) {
+          // If the document doesn't exist yet (e.g. during registration flow), this will fail silently
+          console.debug("Could not update last connection yet", error);
+        }
+      }
       setLoading(false);
     });
 

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Match, Prediction } from "@/types";
-import { Lock, Save, Clock, Activity, Award } from "lucide-react";
+import { Lock, Save, Clock, Activity, Award, Edit3, AlertCircle } from "lucide-react";
 import { clsx } from "clsx";
 import { calculatePredictionPoints } from "@/lib/points";
 
@@ -17,10 +17,15 @@ export default function MatchCard({ match, userPrediction, onSavePrediction }: M
   const [homeScore, setHomeScore] = useState<string>("");
   const [awayScore, setAwayScore] = useState<string>("");
   const [isSaving, setIsSaving] = useState(false);
+  const [timeRemaining, setTimeRemaining] = useState<{ d: number, h: number, m: number, s: number } | null>(null);
 
-  const isLocked = match.status !== "pending";
+  const isStarted = match.status !== "pending";
+  const modsCount = userPrediction?.modificationsCount || 0;
+  const isModsLocked = modsCount >= 2;
+  const isTimeLocked = timeRemaining !== null && (timeRemaining.d <= 0 && timeRemaining.h <= 0 && timeRemaining.m <= 0 && timeRemaining.s <= 0);
+  
+  const isLocked = isStarted || isTimeLocked || isModsLocked || (userPrediction?.locked === true);
 
-  // Sync state with prediction when it loads asynchronously
   useEffect(() => {
     if (userPrediction) {
       setHomeScore(userPrediction.predictedHomeScore.toString());
@@ -31,10 +36,40 @@ export default function MatchCard({ match, userPrediction, onSavePrediction }: M
     }
   }, [userPrediction]);
 
+  // Countdown timer logic
+  useEffect(() => {
+    if (match.status !== "pending") {
+      setTimeRemaining(null);
+      return;
+    }
+
+    const calculateTime = () => {
+      const matchDate = match.date instanceof Date ? match.date : new Date(match.date);
+      const diff = matchDate.getTime() - new Date().getTime();
+      
+      if (diff <= 0) {
+        return { d: 0, h: 0, m: 0, s: 0 };
+      }
+
+      return {
+        d: Math.floor(diff / (1000 * 60 * 60 * 24)),
+        h: Math.floor((diff / (1000 * 60 * 60)) % 24),
+        m: Math.floor((diff / 1000 / 60) % 60),
+        s: Math.floor((diff / 1000) % 60)
+      };
+    };
+
+    setTimeRemaining(calculateTime());
+    const interval = setInterval(() => {
+      setTimeRemaining(calculateTime());
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [match.date, match.status]);
+
   const handleSave = async () => {
     if (!homeScore || !awayScore || isLocked || !onSavePrediction) return;
     setIsSaving(true);
-    // Add small visual delay to feel premium
     await new Promise((r) => setTimeout(r, 600));
     onSavePrediction(parseInt(homeScore), parseInt(awayScore));
     setIsSaving(false);
@@ -71,6 +106,25 @@ export default function MatchCard({ match, userPrediction, onSavePrediction }: M
         </div>
       </div>
 
+      {/* Countdown Timer */}
+      {timeRemaining && match.status === "pending" && !isTimeLocked && (
+        <div className="flex justify-center mb-6">
+          <div className="flex items-center gap-3 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-xs font-mono font-bold tracking-widest text-primary">
+            <Clock className="w-4 h-4" />
+            {timeRemaining.d > 0 && <span>{timeRemaining.d}D</span>}
+            <span>{timeRemaining.h.toString().padStart(2, '0')}:{timeRemaining.m.toString().padStart(2, '0')}:{timeRemaining.s.toString().padStart(2, '0')}</span>
+          </div>
+        </div>
+      )}
+
+      {isTimeLocked && match.status === "pending" && (
+        <div className="flex justify-center mb-6">
+          <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500/10 border border-red-500/30 text-xs font-bold tracking-widest text-red-500">
+            <Lock className="w-4 h-4" /> TIEMPO AGOTADO
+          </div>
+        </div>
+      )}
+
       {/* Match Teams & Score */}
       <div className="flex items-center justify-between gap-4">
         {/* Home Team */}
@@ -85,20 +139,20 @@ export default function MatchCard({ match, userPrediction, onSavePrediction }: M
             type="number"
             min="0"
             max="20"
-            value={isLocked ? (match.homeScore ?? homeScore) : homeScore}
+            value={isStarted ? (match.homeScore ?? homeScore) : homeScore}
             onChange={(e) => setHomeScore(e.target.value)}
             disabled={isLocked}
-            className="w-16 h-16 text-center text-2xl font-black bg-dark-surface border border-dark-border rounded-xl text-white focus:ring-2 focus:ring-primary focus:border-transparent transition-all disabled:opacity-80"
+            className="w-16 h-16 text-center text-2xl font-black bg-dark-surface border border-dark-border rounded-xl text-white focus:ring-2 focus:ring-primary focus:border-transparent transition-all disabled:opacity-80 disabled:cursor-not-allowed"
           />
           <span className="text-gray-500 font-bold text-xl">VS</span>
           <input
             type="number"
             min="0"
             max="20"
-            value={isLocked ? (match.awayScore ?? awayScore) : awayScore}
+            value={isStarted ? (match.awayScore ?? awayScore) : awayScore}
             onChange={(e) => setAwayScore(e.target.value)}
             disabled={isLocked}
-            className="w-16 h-16 text-center text-2xl font-black bg-dark-surface border border-dark-border rounded-xl text-white focus:ring-2 focus:ring-primary focus:border-transparent transition-all disabled:opacity-80"
+            className="w-16 h-16 text-center text-2xl font-black bg-dark-surface border border-dark-border rounded-xl text-white focus:ring-2 focus:ring-primary focus:border-transparent transition-all disabled:opacity-80 disabled:cursor-not-allowed"
           />
         </div>
 
@@ -109,23 +163,41 @@ export default function MatchCard({ match, userPrediction, onSavePrediction }: M
         </div>
       </div>
 
-      {/* Save Button */}
-      {!isLocked && (
-        <motion.button
-          whileTap={{ scale: 0.95 }}
-          onClick={handleSave}
-          disabled={!homeScore || !awayScore || isSaving}
-          className="mt-6 w-full py-3 rounded-xl font-bold text-black bg-primary hover:bg-primary-dark disabled:opacity-50 transition-all flex items-center justify-center gap-2"
-        >
-          {isSaving ? (
-            <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin" />
-          ) : (
-            <>
-              <Save className="w-5 h-5" />
-              Guardar Pronóstico
-            </>
-          )}
-        </motion.button>
+      {/* Save Button & Modifications Info */}
+      {!isStarted && !isTimeLocked && (
+        <div className="mt-6 flex flex-col gap-3">
+          <div className="flex items-center justify-between px-2">
+            <span className="text-xs font-bold text-gray-500 uppercase">
+              Cambios: <span className={clsx("text-white", modsCount >= 2 && "text-red-500")}>{modsCount}/2</span>
+            </span>
+            {isModsLocked && (
+              <span className="text-xs font-bold text-red-500 flex items-center gap-1">
+                <AlertCircle className="w-3 h-3" /> Límite alcanzado
+              </span>
+            )}
+          </div>
+          
+          <motion.button
+            whileTap={!isLocked ? { scale: 0.95 } : {}}
+            onClick={handleSave}
+            disabled={!homeScore || !awayScore || isSaving || isLocked}
+            className="w-full py-3 rounded-xl font-bold text-black bg-primary hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+          >
+            {isSaving ? (
+              <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin" />
+            ) : isModsLocked ? (
+              <>
+                <Lock className="w-5 h-5" />
+                Bloqueado
+              </>
+            ) : (
+              <>
+                <Save className="w-5 h-5" />
+                {userPrediction ? "Actualizar Pronóstico" : "Guardar Pronóstico"}
+              </>
+            )}
+          </motion.button>
+        </div>
       )}
       
       {/* Prediction & Points Alert for finished matches */}
@@ -151,10 +223,15 @@ export default function MatchCard({ match, userPrediction, onSavePrediction }: M
       )}
 
       {/* Pending / Live user prediction state */}
-      {match.status !== "finished" && userPrediction && (
-        <div className="mt-6 p-3 rounded-xl bg-dark-surface border border-dark-border flex items-center justify-center gap-2 text-sm text-gray-400">
-          <Lock className="w-4 h-4" />
-          <span>Pronóstico registrado: {userPrediction.predictedHomeScore} - {userPrediction.predictedAwayScore}</span>
+      {match.status !== "finished" && userPrediction && (isStarted || isTimeLocked) && (
+        <div className="mt-6 p-3 rounded-xl bg-dark-surface border border-dark-border flex items-center justify-between px-4 text-sm text-gray-400">
+          <div className="flex items-center gap-2">
+            <Lock className="w-4 h-4" />
+            <span className="font-bold">Tu Pronóstico:</span>
+          </div>
+          <span className="text-white font-black text-lg bg-white/10 px-3 py-1 rounded-lg">
+            {userPrediction.predictedHomeScore} - {userPrediction.predictedAwayScore}
+          </span>
         </div>
       )}
     </motion.div>

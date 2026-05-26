@@ -20,6 +20,8 @@ export const metadata: Metadata = {
   description: "Plataforma premium de pronósticos y apuestas para el Mundial de Fútbol.",
 };
 
+import ProtectedRoute from "@/components/ProtectedRoute";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -31,7 +33,9 @@ export default function RootLayout({
         <AuthProvider>
           <Navbar />
           <main className="flex-1 flex flex-col">
-            {children}
+            <ProtectedRoute>
+              {children}
+            </ProtectedRoute>
           </main>
           <Footer />
         </AuthProvider>

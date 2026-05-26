@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
-import { motion } from "framer-motion";
-import { Settings, Plus, Save, Activity, Lock, AlertCircle } from "lucide-react";
-import { Match, MatchStatus, Prediction } from "@/types";
+import { motion, AnimatePresence } from "framer-motion";
+import { Settings, Plus, Save, Activity, Lock, AlertCircle, Eye, X, Users, BarChart2, TrendingUp } from "lucide-react";
+import { Match, MatchStatus, Prediction, User as CustomUser } from "@/types";
 import { db } from "@/lib/firebase";
 import { 
   collection, 
@@ -18,6 +18,7 @@ import {
   where 
 } from "firebase/firestore";
 import { calculatePredictionPoints } from "@/lib/points";
+import { clsx } from "clsx";
 
 export default function AdminPage() {
   const { user } = useAuth();
@@ -25,6 +26,16 @@ export default function AdminPage() {
   const [loadingAdmin, setLoadingAdmin] = useState(true);
   const [matches, setMatches] = useState<Match[]>([]);
   const [savingId, setSavingId] = useState<string | null>(null);
+  
+  // Dashboard states
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [totalPredictions, setTotalPredictions] = useState(0);
+  const [exhaustedUsers, setExhaustedUsers] = useState(0);
+
+  // Predictions Modal state
+  const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
+  const [matchPredictions, setMatchPredictions] = useState<(Prediction & { userName: string, lastConnection?: Date })[]>([]);
+  const [loadingPredictions, setLoadingPredictions] = useState(false);
   
   // New match form state
   const [newMatch, setNewMatch] = useState({
@@ -51,29 +62,22 @@ export default function AdminPage() {
         
         if (userSnap.exists()) {
           const data = userSnap.data();
-          // Grant admin if role is 'admin', isAdmin is true, OR if email is the hardcoded admin email
           if (
             data.role === "admin" || 
             data.isAdmin === true || 
             user.email === "yolfranllecastillo@gmail.com" ||
-            process.env.NODE_ENV === "development" // Auto-grant admin in local development for easier testing
+            process.env.NODE_ENV === "development"
           ) {
             setIsAdmin(true);
           } else {
             setIsAdmin(false);
           }
         } else {
-          // If profile doc doesn't exist yet but user is in local dev
-          if (process.env.NODE_ENV === "development") {
-            setIsAdmin(true);
-          }
+          if (process.env.NODE_ENV === "development") setIsAdmin(true);
         }
       } catch (error) {
         console.error("Error checking admin status:", error);
-        // Fallback for local development
-        if (process.env.NODE_ENV === "development") {
-          setIsAdmin(true);
-        }
+        if (process.env.NODE_ENV === "development") setIsAdmin(true);
       } finally {
         setLoadingAdmin(false);
       }
@@ -96,14 +100,34 @@ export default function AdminPage() {
         } as Match;
       });
 
-      // Sort by date ascending
       list.sort((a, b) => a.date.getTime() - b.date.getTime());
       setMatches(list);
-    }, (error) => {
-      console.error("Error loading matches for admin:", error);
     });
 
     return () => unsubscribe();
+  }, [isAdmin]);
+
+  // Load dashboard stats
+  useEffect(() => {
+    if (!db || !isAdmin) return;
+
+    const unsubUsers = onSnapshot(collection(db, "users"), (snapshot) => {
+      setTotalUsers(snapshot.size);
+    });
+
+    const unsubPreds = onSnapshot(collection(db, "predictions"), (snapshot) => {
+      setTotalPredictions(snapshot.size);
+      let exhausted = 0;
+      snapshot.forEach(doc => {
+        if (doc.data().modificationsCount >= 2) exhausted++;
+      });
+      setExhaustedUsers(exhausted);
+    });
+
+    return () => {
+      unsubUsers();
+      unsubPreds();
+    };
   }, [isAdmin]);
 
   const handleCreateMatch = async (e: React.FormEvent) => {
@@ -141,9 +165,7 @@ export default function AdminPage() {
     try {
       const matchRef = doc(db, "matches", match.id);
 
-      // Check if match is set to finished and has not been processed yet
       if (match.status === "finished" && !(match as any).processed) {
-        // Fetch all predictions for this match
         const q = query(collection(db, "predictions"), where("matchId", "==", match.id));
         const predSnapshot = await getDocs(q);
 
@@ -153,7 +175,6 @@ export default function AdminPage() {
           const prediction = docSnap.data() as Prediction;
           const pointsResult = calculatePredictionPoints(match, prediction);
 
-          // Update user points and stats in Firestore
           const userRef = doc(db, "users", prediction.userId);
           const userSnap = await getDoc(userRef);
 
@@ -170,12 +191,10 @@ export default function AdminPage() {
             });
           }
 
-          // Lock the prediction so it cannot be edited
           await updateDoc(docSnap.ref, { locked: true });
           processedCount++;
         }
 
-        // Save match status as finished and processed: true
         await updateDoc(matchRef, {
           homeScore: match.homeScore !== undefined ? match.homeScore : 0,
           awayScore: match.awayScore !== undefined ? match.awayScore : 0,
@@ -185,7 +204,6 @@ export default function AdminPage() {
 
         alert(`Partido finalizado. Se procesaron ${processedCount} pronósticos y se sumaron los puntos.`);
       } else {
-        // Normal update (status pending/live or already processed finished match)
         await updateDoc(matchRef, {
           homeScore: match.homeScore !== undefined ? match.homeScore : null,
           awayScore: match.awayScore !== undefined ? match.awayScore : null,
@@ -198,6 +216,36 @@ export default function AdminPage() {
       alert("Error al guardar cambios en el partido.");
     } finally {
       setSavingId(null);
+    }
+  };
+
+  const openPredictionsModal = async (match: Match) => {
+    if (!db) return;
+    setSelectedMatch(match);
+    setLoadingPredictions(true);
+
+    try {
+      const q = query(collection(db, "predictions"), where("matchId", "==", match.id));
+      const predSnapshot = await getDocs(q);
+      
+      const preds = [];
+      for (const docSnap of predSnapshot.docs) {
+        const p = docSnap.data() as Prediction;
+        const userRef = doc(db, "users", p.userId);
+        const userSnap = await getDoc(userRef);
+        
+        preds.push({
+          ...p,
+          userName: userSnap.exists() ? userSnap.data().name : "Usuario Desconocido",
+          lastConnection: userSnap.exists() && userSnap.data().lastConnection ? userSnap.data().lastConnection.toDate() : undefined
+        });
+      }
+
+      setMatchPredictions(preds);
+    } catch (error) {
+      console.error("Error loading predictions:", error);
+    } finally {
+      setLoadingPredictions(false);
     }
   };
 
@@ -217,11 +265,6 @@ export default function AdminPage() {
         <p className="text-gray-400 max-w-md">
           No tienes permisos de administrador. En producción, tu correo debe estar autorizado o tu perfil debe tener el rol de administrador.
         </p>
-        {process.env.NODE_ENV === "development" && (
-          <p className="text-primary text-xs mt-4">
-            Nota de Dev: En desarrollo deberías tener acceso automáticamente. Revisa si iniciaste sesión.
-          </p>
-        )}
       </div>
     );
   }
@@ -235,18 +278,46 @@ export default function AdminPage() {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-3xl font-bold text-white">Panel de Control</h1>
-            {process.env.NODE_ENV === "development" && (
-              <span className="text-[10px] bg-primary/20 text-primary border border-primary/30 px-2 py-0.5 rounded-full font-bold uppercase">Dev Mode</span>
-            )}
           </div>
           <p className="text-gray-400">Gestiona partidos, resultados y calcula puntos en Firestore.</p>
+        </div>
+      </div>
+
+      {/* DASHBOARD STATS */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+        <div className="glass-panel p-6 rounded-2xl border border-dark-border flex items-center gap-4">
+          <div className="p-4 rounded-xl bg-blue-500/20 text-blue-500">
+            <Users className="w-8 h-8" />
+          </div>
+          <div>
+            <p className="text-sm font-bold text-gray-400 uppercase tracking-wider">Usuarios Activos</p>
+            <p className="text-3xl font-black text-white">{totalUsers}</p>
+          </div>
+        </div>
+        <div className="glass-panel p-6 rounded-2xl border border-dark-border flex items-center gap-4">
+          <div className="p-4 rounded-xl bg-primary/20 text-primary">
+            <BarChart2 className="w-8 h-8" />
+          </div>
+          <div>
+            <p className="text-sm font-bold text-gray-400 uppercase tracking-wider">Pronósticos</p>
+            <p className="text-3xl font-black text-white">{totalPredictions}</p>
+          </div>
+        </div>
+        <div className="glass-panel p-6 rounded-2xl border border-dark-border flex items-center gap-4">
+          <div className="p-4 rounded-xl bg-red-500/20 text-red-500">
+            <TrendingUp className="w-8 h-8" />
+          </div>
+          <div>
+            <p className="text-sm font-bold text-gray-400 uppercase tracking-wider">Cambios Agotados</p>
+            <p className="text-3xl font-black text-white">{exhaustedUsers}</p>
+          </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* CREATE MATCH FORM */}
         <div className="lg:col-span-1">
-          <div className="glass-panel p-6 rounded-2xl border border-dark-border">
+          <div className="glass-panel p-6 rounded-2xl border border-dark-border sticky top-24">
             <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
               <Plus className="w-5 h-5 text-primary" />
               Nuevo Partido
@@ -279,9 +350,10 @@ export default function AdminPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-gray-400 mb-1">Fecha y Hora</label>
+                <label className="block text-xs font-medium text-gray-400 mb-1">Fecha y Hora EXACTA</label>
                 <input type="datetime-local" value={newMatch.date} onChange={e => setNewMatch({...newMatch, date: e.target.value})} required
                        className="w-full bg-dark-surface border border-dark-border rounded-lg p-2.5 text-white focus:border-primary focus:outline-none" />
+                <p className="text-[10px] text-gray-500 mt-1">El pronóstico se bloqueará automáticamente en este minuto exacto.</p>
               </div>
 
               <button type="submit" className="w-full py-3 mt-4 rounded-lg font-bold text-black bg-primary hover:bg-primary-dark transition-colors flex items-center justify-center gap-2">
@@ -301,15 +373,15 @@ export default function AdminPage() {
             </div>
           ) : (
             matches.map(match => (
-              <motion.div key={match.id} layout className="glass-panel p-5 rounded-2xl border border-dark-border flex flex-col sm:flex-row items-center gap-6">
+              <motion.div key={match.id} layout className="glass-panel p-5 rounded-2xl border border-dark-border flex flex-col items-center gap-4">
                 
-                <div className="flex-1 flex items-center gap-4 justify-between w-full">
-                  <div className="flex items-center gap-2">
+                <div className="flex-1 flex flex-col sm:flex-row items-center gap-4 justify-between w-full">
+                  <div className="flex items-center gap-2 w-full sm:w-1/3 justify-start">
                     <span className="text-2xl">{match.homeFlag}</span>
-                    <span className="font-bold text-white w-20 truncate">{match.homeTeam}</span>
+                    <span className="font-bold text-white truncate">{match.homeTeam}</span>
                   </div>
                   
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 justify-center w-full sm:w-1/3">
                     <input type="number" min="0" value={match.homeScore ?? ""} onChange={e => handleUpdateMatchField(match.id, { homeScore: e.target.value ? parseInt(e.target.value) : undefined })}
                            disabled={match.status === "finished" && (match as any).processed}
                            className="w-12 h-12 text-center text-xl font-black bg-dark-surface border border-dark-border rounded-lg text-white focus:border-primary disabled:opacity-50" />
@@ -319,42 +391,166 @@ export default function AdminPage() {
                            className="w-12 h-12 text-center text-xl font-black bg-dark-surface border border-dark-border rounded-lg text-white focus:border-primary disabled:opacity-50" />
                   </div>
 
-                  <div className="flex items-center gap-2 justify-end">
-                    <span className="font-bold text-white w-20 truncate text-right">{match.awayTeam}</span>
+                  <div className="flex items-center gap-2 w-full sm:w-1/3 justify-end">
+                    <span className="font-bold text-white truncate text-right">{match.awayTeam}</span>
                     <span className="text-2xl">{match.awayFlag}</span>
                   </div>
                 </div>
 
-                <div className="w-full sm:w-auto flex items-center gap-2 justify-end">
-                  <select 
-                    value={match.status} 
-                    onChange={e => handleUpdateMatchField(match.id, { status: e.target.value as MatchStatus })}
-                    disabled={match.status === "finished" && (match as any).processed}
-                    className="bg-dark-surface border border-dark-border rounded-lg p-2 text-sm text-white focus:border-primary outline-none disabled:opacity-50"
-                  >
-                    <option value="pending">Pendiente</option>
-                    <option value="live">EN VIVO</option>
-                    <option value="finished">Finalizado</option>
-                  </select>
-                  
+                <div className="w-full flex items-center justify-between mt-2 pt-4 border-t border-dark-border/50">
                   <button 
-                    onClick={() => handleSaveMatch(match)}
-                    disabled={savingId === match.id || (match.status === "finished" && (match as any).processed)}
-                    className="p-2.5 rounded-lg bg-primary/20 text-primary hover:bg-primary/40 transition-colors disabled:opacity-40"
-                    title={match.status === "finished" && (match as any).processed ? "Puntos ya procesados" : "Guardar cambios"}
+                    onClick={() => openPredictionsModal(match)}
+                    className="flex items-center gap-2 text-sm font-bold text-primary hover:text-white transition-colors"
                   >
-                    {savingId === match.id ? (
-                      <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                    ) : (
-                      <Save className="w-5 h-5" />
-                    )}
+                    <Eye className="w-4 h-4" /> Ver Pronósticos
                   </button>
+
+                  <div className="flex items-center gap-2">
+                    <select 
+                      value={match.status} 
+                      onChange={e => handleUpdateMatchField(match.id, { status: e.target.value as MatchStatus })}
+                      disabled={match.status === "finished" && (match as any).processed}
+                      className="bg-dark-surface border border-dark-border rounded-lg p-2 text-sm text-white focus:border-primary outline-none disabled:opacity-50"
+                    >
+                      <option value="pending">Pendiente</option>
+                      <option value="live">EN VIVO</option>
+                      <option value="finished">Finalizado</option>
+                    </select>
+                    
+                    <button 
+                      onClick={() => handleSaveMatch(match)}
+                      disabled={savingId === match.id || (match.status === "finished" && (match as any).processed)}
+                      className="p-2.5 rounded-lg bg-primary/20 text-primary hover:bg-primary/40 transition-colors disabled:opacity-40"
+                      title={match.status === "finished" && (match as any).processed ? "Puntos ya procesados" : "Guardar cambios"}
+                    >
+                      {savingId === match.id ? (
+                        <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <Save className="w-5 h-5" />
+                      )}
+                    </button>
+                  </div>
                 </div>
+
               </motion.div>
             ))
           )}
         </div>
       </div>
+
+      {/* PREDICTIONS MODAL */}
+      <AnimatePresence>
+        {selectedMatch && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedMatch(null)}
+              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            />
+            
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-4xl max-h-[85vh] flex flex-col glass-panel p-6 rounded-2xl border border-dark-border shadow-2xl overflow-hidden bg-dark-bg"
+            >
+              <div className="flex justify-between items-center mb-6 pb-4 border-b border-dark-border">
+                <div>
+                  <h2 className="text-2xl font-black text-white">
+                    Pronósticos: {selectedMatch.homeTeam} vs {selectedMatch.awayTeam}
+                  </h2>
+                  <p className="text-gray-400 text-sm font-medium mt-1">
+                    {matchPredictions.length} pronósticos registrados
+                  </p>
+                </div>
+                <button
+                  onClick={() => setSelectedMatch(null)}
+                  className="p-2 rounded-lg bg-white/5 text-gray-400 hover:text-white transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+                {loadingPredictions ? (
+                  <div className="flex justify-center py-20">
+                    <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+                  </div>
+                ) : matchPredictions.length === 0 ? (
+                  <div className="text-center py-20 text-gray-500 font-medium">
+                    Ningún usuario ha pronosticado este partido todavía.
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-left">
+                      <thead className="text-xs text-gray-400 uppercase bg-dark-surface/50 sticky top-0 backdrop-blur-md">
+                        <tr>
+                          <th className="px-4 py-3 font-bold rounded-tl-lg">Usuario</th>
+                          <th className="px-4 py-3 font-bold text-center">Pronóstico</th>
+                          <th className="px-4 py-3 font-bold text-center">Cambios</th>
+                          <th className="px-4 py-3 font-bold text-center">Último Cambio</th>
+                          <th className="px-4 py-3 font-bold text-center">Última Conexión</th>
+                          {selectedMatch.status === "finished" && (
+                            <th className="px-4 py-3 font-bold text-right rounded-tr-lg">Puntos</th>
+                          )}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {matchPredictions.map((pred, idx) => {
+                          const points = selectedMatch.status === "finished" 
+                            ? calculatePredictionPoints(selectedMatch, pred).pointsEarned 
+                            : null;
+                          
+                          return (
+                            <tr key={idx} className="border-b border-dark-border/50 hover:bg-white/5 transition-colors">
+                              <td className="px-4 py-4 font-bold text-white whitespace-nowrap">
+                                {pred.userName}
+                              </td>
+                              <td className="px-4 py-4">
+                                <div className="flex items-center justify-center gap-2 font-black text-lg">
+                                  <span className="w-6 text-center">{pred.predictedHomeScore}</span>
+                                  <span className="text-gray-500 text-sm font-bold">-</span>
+                                  <span className="w-6 text-center">{pred.predictedAwayScore}</span>
+                                </div>
+                              </td>
+                              <td className="px-4 py-4 text-center">
+                                <span className={clsx("px-2 py-1 rounded-full text-xs font-bold", 
+                                  (pred.modificationsCount || 0) >= 2 ? "bg-red-500/20 text-red-500" : "bg-white/10 text-gray-300"
+                                )}>
+                                  {pred.modificationsCount || 0}/2
+                                </span>
+                              </td>
+                              <td className="px-4 py-4 text-center text-gray-400 text-xs">
+                                {pred.lastModifiedAt && (pred.lastModifiedAt as any).toDate 
+                                  ? (pred.lastModifiedAt as any).toDate().toLocaleString() 
+                                  : "Original"}
+                              </td>
+                              <td className="px-4 py-4 text-center text-gray-400 text-xs">
+                                {pred.lastConnection ? pred.lastConnection.toLocaleString() : "Desconocida"}
+                              </td>
+                              {selectedMatch.status === "finished" && (
+                                <td className="px-4 py-4 text-right">
+                                  <span className={clsx("font-black text-lg", 
+                                    points === 5 ? "text-primary" : points === 3 ? "text-green-400" : "text-gray-600"
+                                  )}>
+                                    +{points}
+                                  </span>
+                                </td>
+                              )}
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

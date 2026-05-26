@@ -137,14 +137,41 @@ export default function MatchesBoard() {
 
     try {
       const predId = `${user.uid}_${matchId}`;
+      const existingPred = predictions[matchId];
+      
+      const modsCount = existingPred ? (existingPred.modificationsCount || 0) : 0;
+      
+      if (existingPred && modsCount >= 2) {
+        alert("Has alcanzado el máximo de cambios permitidos (2) para este partido.");
+        return;
+      }
+      
+      const history = existingPred?.history || [];
+      if (existingPred) {
+        history.push({
+          predictedHomeScore: existingPred.predictedHomeScore,
+          predictedAwayScore: existingPred.predictedAwayScore,
+          modifiedAt: new Date()
+        });
+      }
+
+      const isNowLocked = (existingPred ? modsCount + 1 : 0) >= 2;
+
       await setDoc(doc(db, "predictions", predId), {
         userId: user.uid,
         matchId,
         predictedHomeScore: home,
         predictedAwayScore: away,
-        locked: false,
-        updatedAt: new Date()
+        locked: isNowLocked,
+        modificationsCount: existingPred ? modsCount + 1 : 0,
+        createdAt: existingPred?.createdAt || new Date(),
+        lastModifiedAt: new Date(),
+        history
       });
+      
+      if (isNowLocked) {
+        alert("Pronóstico guardado. Has agotado tus modificaciones permitidas para este partido.");
+      }
     } catch (error) {
       console.error("Error saving prediction to Firestore:", error);
       alert("Ocurrió un error al guardar tu pronóstico en Firestore. Revisa las reglas de seguridad.");
