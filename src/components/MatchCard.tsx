@@ -45,7 +45,9 @@ export default function MatchCard({ match, userPrediction, onSavePrediction }: M
 
     const calculateTime = () => {
       const matchDate = match.date instanceof Date ? match.date : new Date(match.date);
-      const diff = matchDate.getTime() - new Date().getTime();
+      // Lock predictions 1 hour (3600000 ms) before the match starts
+      const lockDate = new Date(matchDate.getTime() - (60 * 60 * 1000));
+      const diff = lockDate.getTime() - new Date().getTime();
       
       if (diff <= 0) {
         return { d: 0, h: 0, m: 0, s: 0 };
@@ -108,7 +110,8 @@ export default function MatchCard({ match, userPrediction, onSavePrediction }: M
 
       {/* Countdown Timer */}
       {timeRemaining && match.status === "pending" && !isTimeLocked && (
-        <div className="flex justify-center mb-6">
+        <div className="flex flex-col items-center mb-6 gap-1">
+          <div className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Cierra en:</div>
           <div className="flex items-center gap-3 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-xs font-mono font-bold tracking-widest text-primary">
             <Clock className="w-4 h-4" />
             {timeRemaining.d > 0 && <span>{timeRemaining.d}D</span>}
@@ -118,10 +121,11 @@ export default function MatchCard({ match, userPrediction, onSavePrediction }: M
       )}
 
       {isTimeLocked && match.status === "pending" && (
-        <div className="flex justify-center mb-6">
+        <div className="flex flex-col items-center mb-6 gap-1">
           <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500/10 border border-red-500/30 text-xs font-bold tracking-widest text-red-500">
-            <Lock className="w-4 h-4" /> TIEMPO AGOTADO
+            <Lock className="w-4 h-4" /> PRONÓSTICO CERRADO
           </div>
+          <span className="text-[10px] text-gray-500">Cerró 1 hora antes del partido</span>
         </div>
       )}
 
