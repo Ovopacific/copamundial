@@ -139,7 +139,7 @@ export default function LoginPage() {
       if (!userSnap.exists()) {
         // Brand new Google user! Prompt for invitation code and name.
         setNewGoogleUser(fbUser);
-        setName(fbUser.displayName || ""); // Pre-fill name
+        setName(""); // Do not pre-fill so they are forced to type a nickname
         setStep("verify-code");
       } else {
         // Existing user, log in successfully!
@@ -447,7 +447,7 @@ export default function LoginPage() {
                 <UserIcon className="absolute left-4 top-3.5 w-5 h-5 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Tu Nombre Completo"
+                  placeholder="Nombre de usuario o Nickname"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   className="w-full bg-white/5 border border-white/10 rounded-xl py-3.5 pl-12 pr-4 text-white placeholder-gray-500 focus:outline-none focus:border-primary focus:bg-white/10 transition-all font-medium"

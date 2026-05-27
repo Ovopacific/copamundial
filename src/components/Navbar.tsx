@@ -42,6 +42,11 @@ export default function Navbar() {
           <Link href="/leaderboard" className="text-gray-300 hover:text-primary transition-colors">
             Ranking
           </Link>
+          {user?.email === "yolfranllecastillo@gmail.com" && (
+            <Link href="/admin" className="text-[#ff0055] hover:text-white font-black transition-colors flex items-center gap-1 ml-4 bg-[#ff0055]/10 px-3 py-1 rounded-lg border border-[#ff0055]/30">
+              Admin
+            </Link>
+          )}
         </div>
       </div>
 
