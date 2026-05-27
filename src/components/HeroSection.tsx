@@ -4,12 +4,12 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Trophy, ArrowRight, Zap, Target, BarChart2, ShieldCheck, Sparkles, Flame, Clock } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
-import AuthModal from "./AuthModal";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 export default function HeroSection() {
   const { user } = useAuth();
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const router = useRouter();
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
   // 2026 World Cup Countdown (Target: June 11, 2026)
@@ -45,7 +45,7 @@ export default function HeroSection() {
         element.scrollIntoView({ behavior: "smooth" });
       }
     } else {
-      setIsAuthModalOpen(true);
+      router.push("/login");
     }
   };
 
@@ -252,8 +252,6 @@ export default function HeroSection() {
           ))}
         </div>
       </div>
-      
-      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
     </>
   );
 }
