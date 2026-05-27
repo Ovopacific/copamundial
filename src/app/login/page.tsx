@@ -33,11 +33,23 @@ export default function LoginPage() {
   const [step, setStep] = useState<"auth" | "verify-code">("auth");
   const [newGoogleUser, setNewGoogleUser] = useState<FirebaseUser | null>(null);
 
-  // Redirect to home if already logged in
+  // Redirect to home if already logged in AND has a profile
   useEffect(() => {
-    if (user && step !== "verify-code") {
-      router.replace("/");
-    }
+    const checkAndRedirect = async () => {
+      if (user && step !== "verify-code") {
+        try {
+          const userRef = doc(db, "users", user.uid);
+          const userSnap = await getDoc(userRef);
+          if (userSnap.exists()) {
+            router.replace("/");
+          }
+          // If the doc doesn't exist, we wait for handleGoogleSignIn to set step="verify-code"
+        } catch (e) {
+          console.error("Error checking user profile", e);
+        }
+      }
+    };
+    checkAndRedirect();
   }, [user, step, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
