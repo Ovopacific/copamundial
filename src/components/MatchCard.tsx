@@ -45,8 +45,8 @@ export default function MatchCard({ match, userPrediction, onSavePrediction }: M
 
     const calculateTime = () => {
       const matchDate = match.date instanceof Date ? match.date : new Date(match.date);
-      // Lock predictions 1 hour (3600000 ms) before the match starts
-      const lockDate = new Date(matchDate.getTime() - (60 * 60 * 1000));
+      // Lock predictions 2 hours (7200000 ms) before the match starts
+      const lockDate = new Date(matchDate.getTime() - (2 * 60 * 60 * 1000));
       const diff = lockDate.getTime() - new Date().getTime();
       
       if (diff <= 0) {
@@ -125,7 +125,7 @@ export default function MatchCard({ match, userPrediction, onSavePrediction }: M
           <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500/10 border border-red-500/30 text-xs font-bold tracking-widest text-red-500">
             <Lock className="w-4 h-4" /> PRONÓSTICO CERRADO
           </div>
-          <span className="text-[10px] text-gray-500">Cerró 1 hora antes del partido</span>
+          <span className="text-[10px] text-gray-500">Cerró 2 horas antes del partido</span>
         </div>
       )}
 
