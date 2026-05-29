@@ -11,6 +11,72 @@ export default function HeroSection() {
   const { user } = useAuth();
   const router = useRouter();
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  const slides = [
+    {
+      image: "/slider/6.png",
+      title: "🏆 GRAN FINAL 2026",
+      desc: "¡COLOMBIA CAMPEÓN DEL MUNDO! Histórico 4-2 contra Portugal para levantar la tan anhelada copa.",
+      score: "4 - 2",
+      opponent: "PORTUGAL",
+      flag: "🇵🇹",
+      status: "CAMPEÓN"
+    },
+    {
+      image: "/slider/2.png",
+      title: "🏆 SEMIFINAL 2026",
+      desc: "¡Magia cafetera! Colombia deslumbra al mundo entero al eliminar a Brasil con un sólido 2-0 y pasa a la final.",
+      score: "2 - 0",
+      opponent: "BRASIL",
+      flag: "🇧🇷",
+      status: "FINALISTA"
+    },
+    {
+      image: "/slider/1.png",
+      title: "🏆 CUARTOS DE FINAL 2026",
+      desc: "¡Colombia domina el mediocampo y elimina a Francia con un contundente 3-1, asegurando su pase a la semifinal!",
+      score: "3 - 1",
+      opponent: "FRANCIA",
+      flag: "🇫🇷",
+      status: "CLASIFICADO"
+    },
+    {
+      image: "/slider/4.png",
+      title: "🏆 OCTAVOS DE FINAL 2026",
+      desc: "¡Victoria táctica! Colombia supera la estricta muralla de Alemania con un histórico 1-0.",
+      score: "1 - 0",
+      opponent: "ALEMANIA",
+      flag: "🇩🇪",
+      status: "CLASIFICADO"
+    },
+    {
+      image: "/slider/3.png",
+      title: "🏆 FASE DE GRUPOS 2026",
+      desc: "¡Victoria agónica! Colombia le gana el pulso a España 2-1 en un partido de infarto y lidera el grupo.",
+      score: "2 - 1",
+      opponent: "ESPAÑA",
+      flag: "🇪🇸",
+      status: "LÍDER"
+    },
+    {
+      image: "/slider/5.png",
+      title: "🏆 FASE DE GRUPOS 2026",
+      desc: "Lluvia de goles en Norteamérica. Colombia vence a Inglaterra 3-2 en el mejor partido del torneo.",
+      score: "3 - 2",
+      opponent: "INGLATERRA",
+      flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿",
+      status: "GANADOR"
+    }
+  ];
+
+  // Auto-rotate slider
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % slides.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, []);
 
   // 2026 World Cup Countdown (Target: June 11, 2026)
   useEffect(() => {
@@ -175,55 +241,66 @@ export default function HeroSection() {
               
               <div className="absolute inset-0 bg-gradient-to-t from-[#02040a] via-[#02040a]/40 to-transparent z-10 opacity-90 pointer-events-none"></div>
               
-              <img 
-                src="/world-cup-scoreboard.png" 
-                alt="Gran Final Mundial 2026 Scoreboard COL vs ARG" 
-                className="w-full h-full object-cover rounded-[24px] transition-transform duration-1000 group-hover:scale-105" 
-              />
-              
-              {/* Premium EA FUT card absolute content */}
-              <div className="absolute bottom-8 left-8 right-8 z-20 flex flex-col items-start">
-                <div className="flex gap-2 mb-3">
-                  <span className="px-3 py-1 rounded-md bg-[#ff0055] text-white text-[9px] font-black tracking-widest uppercase">
-                    MARQUEE MATCHUP
-                  </span>
-                  <span className="px-3 py-1 rounded-md bg-[#ffd700] text-black text-[9px] font-black tracking-widest uppercase">
-                    5X POINTS
-                  </span>
-                </div>
-                <h3 className="text-3xl font-black text-white leading-none uppercase tracking-wide mb-2 text-shadow-lg flex items-center gap-2">
-                  🏆 GRAN FINAL 2026
-                </h3>
-                <p className="text-gray-300 text-xs font-semibold leading-relaxed mb-4">
-                  ¡Colombia se consagra campeona del mundo al derrotar a Argentina en una final histórica y memorable en Norteamérica!
-                </p>
-                
-                {/* Visual miniature live card */}
-                <div className="w-full flex items-center justify-between p-3.5 rounded-2xl bg-white/5 border border-[#00ff66]/30 backdrop-blur-md shadow-[0_0_20px_rgba(0,255,102,0.15)]">
-                  <div className="flex items-center gap-3">
-                    <span className="text-3xl">🇨🇴</span>
-                    <div className="flex flex-col">
-                      <span className="text-xs font-black text-white uppercase tracking-wider">COLOMBIA</span>
-                      <span className="text-xs text-[#00ff66] font-bold">CAMPEÓN</span>
-                    </div>
-                  </div>
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={currentSlide}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.5 }}
+                  className="w-full h-full absolute inset-0"
+                >
+                  <img 
+                    src={slides[currentSlide].image} 
+                    alt={slides[currentSlide].title} 
+                    className="w-full h-full object-cover rounded-[24px] transition-transform duration-5000 scale-100 hover:scale-110" 
+                  />
                   
-                  <div className="flex flex-col items-center">
-                    <span className="text-2xl font-black text-[#00ff66] bg-[#00ff66]/10 px-3.5 py-1.5 rounded-xl border border-[#00ff66]/30 glow-accent">
-                      2 - 0
-                    </span>
-                    <span className="text-[9px] text-[#ffd700] font-black uppercase mt-1.5 tracking-widest animate-pulse">FINALIZADO</span>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <div className="flex flex-col items-end">
-                      <span className="text-xs font-black text-white uppercase tracking-wider">ARGENTINA</span>
-                      <span className="text-xs text-gray-500 font-semibold">SUBCAMPEÓN</span>
+                  {/* Premium EA FUT card absolute content */}
+                  <div className="absolute bottom-8 left-8 right-8 z-20 flex flex-col items-start">
+                    <div className="flex gap-2 mb-3">
+                      <span className="px-3 py-1 rounded-md bg-[#ff0055] text-white text-[9px] font-black tracking-widest uppercase shadow-[0_0_10px_rgba(255,0,85,0.5)]">
+                        MARQUEE MATCHUP
+                      </span>
+                      <span className="px-3 py-1 rounded-md bg-[#ffd700] text-black text-[9px] font-black tracking-widest uppercase shadow-[0_0_10px_rgba(255,215,0,0.5)]">
+                        5X POINTS
+                      </span>
                     </div>
-                    <span className="text-3xl">🇦🇷</span>
+                    <h3 className="text-2xl sm:text-3xl font-black text-white leading-none uppercase tracking-wide mb-2 text-shadow-lg flex items-center gap-2">
+                      {slides[currentSlide].title}
+                    </h3>
+                    <p className="text-gray-300 text-xs sm:text-sm font-semibold leading-relaxed mb-4 max-w-md drop-shadow-md bg-black/40 p-2 rounded-lg backdrop-blur-sm border border-white/5">
+                      {slides[currentSlide].desc}
+                    </p>
+                    
+                    {/* Visual miniature live card */}
+                    <div className="w-full flex items-center justify-between p-3.5 rounded-2xl bg-white/10 border border-[#00ff66]/40 backdrop-blur-md shadow-[0_0_20px_rgba(0,255,102,0.2)]">
+                      <div className="flex items-center gap-3">
+                        <span className="text-3xl">🇨🇴</span>
+                        <div className="flex flex-col">
+                          <span className="text-xs font-black text-white uppercase tracking-wider">COLOMBIA</span>
+                          <span className="text-[10px] text-[#00ff66] font-black tracking-widest">{slides[currentSlide].status}</span>
+                        </div>
+                      </div>
+                      
+                      <div className="flex flex-col items-center">
+                        <span className="text-2xl sm:text-3xl font-black text-[#00ff66] bg-[#00ff66]/10 px-4 py-1.5 rounded-xl border border-[#00ff66]/30 glow-accent">
+                          {slides[currentSlide].score}
+                        </span>
+                        <span className="text-[9px] text-[#ffd700] font-black uppercase mt-1.5 tracking-widest animate-pulse">FINALIZADO</span>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <div className="flex flex-col items-end">
+                          <span className="text-xs font-black text-white uppercase tracking-wider">{slides[currentSlide].opponent}</span>
+                          <span className="text-[10px] text-gray-400 font-bold tracking-widest">ELIMINADO</span>
+                        </div>
+                        <span className="text-3xl">{slides[currentSlide].flag}</span>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
+                </motion.div>
+              </AnimatePresence>
             </div>
           </motion.div>
 
