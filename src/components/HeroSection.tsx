@@ -229,28 +229,6 @@ export default function HeroSection() {
 
         </div>
 
-        {/* Dynamic 3-Column Features Section */}
-        <div className="relative z-10 w-full max-w-7xl mt-28 grid grid-cols-1 md:grid-cols-3 gap-6">
-          {[
-            { icon: Zap, color: "text-[#00ff66]", border: "group-hover:border-[#00ff66]/40", bg: "bg-[#00ff66]/5", title: "Resultados en Vivo", desc: "Sincronización de estadísticas en vivo al segundo, goles, córners y tarjetas directo del campo." },
-            { icon: Target, color: "text-[#ffd700]", border: "group-hover:border-[#ffd700]/40", bg: "bg-[#ffd700]/5", title: "Retos y Ligas de Honor", desc: "Crea ligas privadas con tus amigos, comparte tu código y asciende al podio en tiempo real." },
-            { icon: BarChart2, color: "text-primary", border: "group-hover:border-primary/40", bg: "bg-[#0055ff]/5", title: "Dashboard FUT", desc: "Historial completo de predicciones, gráficas interactivas y estadísticas avanzadas del usuario." }
-          ].map((feature, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 + i * 0.15, duration: 0.6 }}
-              className="glass-panel p-8 rounded-[28px] border border-white/5 hover:border-primary/20 flex flex-col items-center text-center hover:bg-dark-surface/40 hover:shadow-[0_12px_40px_rgba(0,85,255,0.08)] transition-all duration-300 group cursor-default"
-            >
-              <div className={`p-4.5 rounded-2xl bg-dark-surface border border-white/5 ${feature.border} group-hover:scale-110 transition-all duration-300 mb-5`}>
-                <feature.icon className={`w-8 h-8 ${feature.color}`} />
-              </div>
-              <h3 className="text-xl font-black text-white mb-2.5 uppercase tracking-wide">{feature.title}</h3>
-              <p className="text-gray-400 text-sm leading-relaxed">{feature.desc}</p>
-            </motion.div>
-          ))}
-        </div>
       </div>
     </>
   );
