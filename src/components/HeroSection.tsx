@@ -257,7 +257,7 @@ export default function HeroSection() {
                   />
                   
                   {/* Premium EA FUT card absolute content */}
-                  <div className="absolute bottom-8 left-8 right-8 z-20 flex flex-col items-start">
+                  <div className="absolute bottom-4 left-4 right-4 sm:bottom-8 sm:left-8 sm:right-8 z-20 flex flex-col items-start">
                     <div className="flex gap-2 mb-3">
                       <span className="px-3 py-1 rounded-md bg-[#ff0055] text-white text-[9px] font-black tracking-widest uppercase shadow-[0_0_10px_rgba(255,0,85,0.5)]">
                         MARQUEE MATCHUP
@@ -269,33 +269,33 @@ export default function HeroSection() {
                     <h3 className="text-2xl sm:text-3xl font-black text-white leading-none uppercase tracking-wide mb-2 text-shadow-lg flex items-center gap-2">
                       {slides[currentSlide].title}
                     </h3>
-                    <p className="text-gray-300 text-xs sm:text-sm font-semibold leading-relaxed mb-4 max-w-md drop-shadow-md bg-black/40 p-2 rounded-lg backdrop-blur-sm border border-white/5">
+                    <p className="text-gray-300 text-[10px] sm:text-sm font-semibold leading-relaxed mb-3 sm:mb-4 max-w-md drop-shadow-md bg-black/40 p-2 rounded-lg backdrop-blur-sm border border-white/5 line-clamp-2 sm:line-clamp-none">
                       {slides[currentSlide].desc}
                     </p>
                     
                     {/* Visual miniature live card */}
-                    <div className="w-full flex items-center justify-between p-3.5 rounded-2xl bg-white/10 border border-[#00ff66]/40 backdrop-blur-md shadow-[0_0_20px_rgba(0,255,102,0.2)]">
-                      <div className="flex items-center gap-3">
-                        <span className="text-3xl">🇨🇴</span>
+                    <div className="w-full flex items-center justify-between p-2 sm:p-3.5 rounded-2xl bg-white/10 border border-[#00ff66]/40 backdrop-blur-md shadow-[0_0_20px_rgba(0,255,102,0.2)]">
+                      <div className="flex items-center gap-1.5 sm:gap-3">
+                        <span className="text-2xl sm:text-3xl">🇨🇴</span>
                         <div className="flex flex-col">
-                          <span className="text-xs font-black text-white uppercase tracking-wider">COLOMBIA</span>
-                          <span className="text-[10px] text-[#00ff66] font-black tracking-widest">{slides[currentSlide].status}</span>
+                          <span className="text-[9px] sm:text-xs font-black text-white uppercase tracking-wider">COLOMBIA</span>
+                          <span className="text-[8px] sm:text-[10px] text-[#00ff66] font-black tracking-widest">{slides[currentSlide].status}</span>
                         </div>
                       </div>
                       
-                      <div className="flex flex-col items-center">
-                        <span className="text-2xl sm:text-3xl font-black text-[#00ff66] bg-[#00ff66]/10 px-4 py-1.5 rounded-xl border border-[#00ff66]/30 glow-accent">
+                      <div className="flex flex-col items-center mx-1">
+                        <span className="text-xl sm:text-3xl font-black text-[#00ff66] bg-[#00ff66]/10 px-2 sm:px-4 py-1 sm:py-1.5 rounded-lg sm:rounded-xl border border-[#00ff66]/30 glow-accent">
                           {slides[currentSlide].score}
                         </span>
-                        <span className="text-[9px] text-[#ffd700] font-black uppercase mt-1.5 tracking-widest animate-pulse">FINALIZADO</span>
+                        <span className="text-[7px] sm:text-[9px] text-[#ffd700] font-black uppercase mt-1 sm:mt-1.5 tracking-widest animate-pulse">FINALIZADO</span>
                       </div>
 
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-1.5 sm:gap-3">
                         <div className="flex flex-col items-end">
-                          <span className="text-xs font-black text-white uppercase tracking-wider">{slides[currentSlide].opponent}</span>
-                          <span className="text-[10px] text-gray-400 font-bold tracking-widest">ELIMINADO</span>
+                          <span className="text-[9px] sm:text-xs font-black text-white uppercase tracking-wider">{slides[currentSlide].opponent}</span>
+                          <span className="text-[8px] sm:text-[10px] text-gray-400 font-bold tracking-widest">ELIMINADO</span>
                         </div>
-                        <span className="text-3xl">{slides[currentSlide].flag}</span>
+                        <span className="text-2xl sm:text-3xl">{slides[currentSlide].flag}</span>
                       </div>
                     </div>
                   </div>
