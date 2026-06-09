@@ -20,6 +20,14 @@ export const metadata: Metadata = {
   description: "Plataforma premium de pronósticos y apuestas para el Mundial de Fútbol.",
 };
 
+import type { Viewport } from "next";
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
+
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 export default function RootLayout({

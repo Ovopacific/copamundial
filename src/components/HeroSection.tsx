@@ -162,7 +162,7 @@ export default function HeroSection() {
               <span className="tracking-widest font-black text-glow">PLATAFORMA OFICIAL OVOPACIFIC</span>
             </motion.div>
             
-            <h1 className="text-5xl md:text-7xl font-black tracking-tight mb-6 leading-[1.05] uppercase">
+            <h1 className="text-4xl sm:text-5xl md:text-7xl font-black tracking-tight mb-4 sm:mb-6 leading-[1.05] uppercase">
               VIVE LA PASIÓN<br/>
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-[#00ff66] to-[#ff0055] leading-none filter drop-shadow-[0_0_15px_rgba(0,85,255,0.3)]">
                 DEL MUNDIAL 2026
@@ -179,17 +179,17 @@ export default function HeroSection() {
                 <Clock className="w-4 h-4 text-[#ffd700] animate-spin" style={{ animationDuration: "10s" }} />
                 CUENTA REGRESIVA PARA LA PATADA INICIAL:
               </span>
-              <div className="grid grid-cols-4 gap-3">
+              <div className="grid grid-cols-4 gap-1.5 sm:gap-3">
                 {[
                   { value: timeLeft.days, label: "DÍAS" },
                   { value: timeLeft.hours, label: "HORAS" },
                   { value: timeLeft.minutes, label: "MINS" },
                   { value: timeLeft.seconds, label: "SEGS" }
                 ].map((item, index) => (
-                  <div key={index} className="glass-panel rounded-2xl p-4 flex flex-col items-center justify-center border border-white/5 shadow-[0_4px_20px_rgba(0,0,0,0.4)] relative overflow-hidden group hover:border-[#ffd700]/30 transition-all duration-300">
+                  <div key={index} className="glass-panel rounded-xl sm:rounded-2xl p-2 sm:p-4 flex flex-col items-center justify-center border border-white/5 shadow-[0_4px_20px_rgba(0,0,0,0.4)] relative overflow-hidden group hover:border-[#ffd700]/30 transition-all duration-300">
                     {/* Glowing golden base line */}
                     <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-[#ffd700] to-secondary opacity-80" />
-                    <span className="text-3xl md:text-4xl font-black text-white tracking-tight leading-none text-glow mb-1">
+                    <span className="text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-tight leading-none text-glow mb-1">
                       {String(item.value).padStart(2, "0")}
                     </span>
                     <span className="text-[10px] text-gray-400 font-extrabold tracking-widest">
@@ -203,13 +203,13 @@ export default function HeroSection() {
             <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
               <button 
                 onClick={handleGetStarted}
-                className="flex items-center justify-center gap-2.5 px-9 py-4.5 rounded-2xl font-black text-lg bg-gradient-to-r from-primary to-[#003cc2] text-white hover:glow-primary transition-all duration-300 transform hover:-translate-y-1 cursor-pointer active:scale-95 shadow-[0_8px_30px_rgba(0,85,255,0.3)]"
+                className="flex items-center justify-center gap-2.5 px-6 sm:px-9 py-3.5 sm:py-4.5 rounded-xl sm:rounded-2xl font-black text-base sm:text-lg bg-gradient-to-r from-primary to-[#003cc2] text-white hover:glow-primary transition-all duration-300 transform hover:-translate-y-1 cursor-pointer active:scale-95 shadow-[0_8px_30px_rgba(0,85,255,0.3)]"
               >
-                Comenzar Ahora <ArrowRight className="w-5 h-5 font-black text-[#00ff66]" />
+                Comenzar Ahora <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 font-black text-[#00ff66]" />
               </button>
               <Link 
                 href="/leaderboard"
-                className="flex items-center justify-center px-9 py-4.5 rounded-2xl font-black text-lg glass-panel text-white hover:bg-dark-surface/50 border border-white/10 hover:border-primary/50 transition-all duration-300 transform hover:-translate-y-1 cursor-pointer active:scale-95"
+                className="flex items-center justify-center px-6 sm:px-9 py-3.5 sm:py-4.5 rounded-xl sm:rounded-2xl font-black text-base sm:text-lg glass-panel text-white hover:bg-dark-surface/50 border border-white/10 hover:border-primary/50 transition-all duration-300 transform hover:-translate-y-1 cursor-pointer active:scale-95"
               >
                 <Trophy className="w-5 h-5 mr-2 text-[#ffd700] animate-pulse" />
                 Ver Ligas y Retos
