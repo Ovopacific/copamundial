@@ -67,6 +67,24 @@ export default function HeroSection() {
       opponent: "INGLATERRA",
       flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿",
       status: "GANADOR"
+    },
+    {
+      image: "/slider/7.png",
+      title: "🏆 ZURDA DE ORO 2026",
+      desc: "¡Zurdazo mágico del número 10! Un golazo espectacular desde fuera del área que hace vibrar al estadio entero.",
+      score: "3 - 0",
+      opponent: "URUGUAY",
+      flag: "🇺🇾",
+      status: "MAGIA"
+    },
+    {
+      image: "/slider/8.png",
+      title: "🏆 MAGIA GUAJIRA 2026",
+      desc: "¡Velocidad y desborde! El extremo colombiano rompe la defensa y marca un gol de ensueño para asegurar la victoria.",
+      score: "2 - 1",
+      opponent: "ARGENTINA",
+      flag: "🇦🇷",
+      status: "IMPARABLE"
     }
   ];
 
