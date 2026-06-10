@@ -5,7 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 
 export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
+  const { user, loading, hasProfile, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
@@ -16,11 +16,18 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
 
   useEffect(() => {
     if (!loading && mounted) {
+      // Not logged in
       if (!user && pathname !== "/login") {
         router.replace("/login");
       }
+      
+      // Ghost User: Logged in but has no profile (aborted signup)
+      if (user && hasProfile === false && pathname !== "/login") {
+        logout();
+        router.replace("/login");
+      }
     }
-  }, [user, loading, router, pathname, mounted]);
+  }, [user, loading, hasProfile, router, pathname, mounted, logout]);
 
   // Handle flash of unauthenticated content
   if (!mounted || loading) {

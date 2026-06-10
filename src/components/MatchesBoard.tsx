@@ -89,6 +89,20 @@ export default function MatchesBoard() {
       const predId = `${user.uid}_${matchId}`;
       const existingPred = predictions[matchId];
       
+      const targetMatch = matches.find(m => m.id === matchId);
+      if (!targetMatch) {
+        alert("Partido no encontrado.");
+        return;
+      }
+      
+      const matchDate = targetMatch.date instanceof Date ? targetMatch.date : new Date(targetMatch.date);
+      const lockDate = new Date(matchDate.getTime() - (2 * 60 * 60 * 1000));
+      
+      if (new Date().getTime() >= lockDate.getTime()) {
+        alert("El tiempo para pronosticar este partido ha expirado (Cerró 2 horas antes del inicio).");
+        return;
+      }
+      
       const modsCount = existingPred ? (existingPred.modificationsCount || 0) : 0;
       
       if (existingPred && modsCount >= 2) {

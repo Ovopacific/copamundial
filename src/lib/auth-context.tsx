@@ -14,6 +14,7 @@ import { auth, db } from "./firebase";
 interface AuthContextType {
   user: User | null;
   loading: boolean;
+  hasProfile: boolean | null;
   signInWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -21,6 +22,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
+  hasProfile: null,
   signInWithGoogle: async () => {},
   logout: async () => {},
 });
@@ -28,6 +30,7 @@ const AuthContext = createContext<AuthContextType>({
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [hasProfile, setHasProfile] = useState<boolean | null>(null);
 
   useEffect(() => {
     // If auth is not initialized (e.g. missing config), just stop loading to avoid white screen
@@ -45,10 +48,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           await updateDoc(userRef, {
             lastConnection: new Date()
           });
+          setHasProfile(true);
         } catch (error) {
-          // If the document doesn't exist yet (e.g. during registration flow), this will fail silently
+          // If the document doesn't exist yet (e.g. during registration flow), this will fail
           console.debug("Could not update last connection yet", error);
+          setHasProfile(false);
         }
+      } else {
+        setHasProfile(null);
       }
       setLoading(false);
     });
@@ -79,7 +86,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, signInWithGoogle, logout }}>
+    <AuthContext.Provider value={{ user, loading, hasProfile, signInWithGoogle, logout }}>
       {children}
     </AuthContext.Provider>
   );
