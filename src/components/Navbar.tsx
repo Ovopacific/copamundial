@@ -1,13 +1,15 @@
 "use client";
 
 import { useAuth } from "@/lib/auth-context";
-import { LogOut, User, Trophy } from "lucide-react";
+import { LogOut, User, Trophy, Menu, X } from "lucide-react";
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 export default function Navbar() {
   const { user, loading, logout } = useAuth();
   const pathname = usePathname();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Do not render navbar on the login page
   if (pathname === "/login") return null;
@@ -81,7 +83,33 @@ export default function Navbar() {
             )}
           </>
         )}
+        
+        {/* Mobile menu toggle button */}
+        <button 
+          className="md:hidden p-1 text-gray-400 hover:text-white transition-colors"
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        >
+          {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+        </button>
       </div>
+
+      {/* Mobile Menu Dropdown */}
+      {isMobileMenuOpen && (
+        <div className="absolute top-full left-0 w-full glass-panel border-b border-dark-border/40 p-4 flex flex-col gap-4 md:hidden shadow-xl animate-in slide-in-from-top-2">
+          <Link href="/" onClick={() => setIsMobileMenuOpen(false)} className="text-gray-300 hover:text-primary font-bold uppercase tracking-wider">Inicio</Link>
+          <Link href="/#matches-board" onClick={() => setIsMobileMenuOpen(false)} className="text-gray-300 hover:text-primary font-bold uppercase tracking-wider">Partidos</Link>
+          <Link href="/leaderboard" onClick={() => setIsMobileMenuOpen(false)} className="text-gray-300 hover:text-primary font-bold uppercase tracking-wider flex items-center gap-2">
+            <Trophy className="w-4 h-4 text-[#ffd700]" /> Tabla
+          </Link>
+          <Link href="/profile" onClick={() => setIsMobileMenuOpen(false)} className="text-gray-300 hover:text-[#00ff66] font-bold uppercase tracking-wider">Retos</Link>
+          <Link href="/leaderboard" onClick={() => setIsMobileMenuOpen(false)} className="text-gray-300 hover:text-primary font-bold uppercase tracking-wider">Ranking</Link>
+          {user?.email === "yolfranllecastillo@gmail.com" && (
+            <Link href="/admin" onClick={() => setIsMobileMenuOpen(false)} className="text-[#ff0055] hover:text-white font-black uppercase tracking-wider flex items-center gap-1 w-max bg-[#ff0055]/10 px-3 py-1.5 rounded-lg border border-[#ff0055]/30">
+              Admin
+            </Link>
+          )}
+        </div>
+      )}
     </nav>
   );
 }
