@@ -230,7 +230,7 @@ export default function HeroSection() {
                 className="flex items-center justify-center px-6 sm:px-9 py-3.5 sm:py-4.5 rounded-xl sm:rounded-2xl font-black text-base sm:text-lg glass-panel text-white hover:bg-dark-surface/50 border border-white/10 hover:border-primary/50 transition-all duration-300 transform hover:-translate-y-1 cursor-pointer active:scale-95"
               >
                 <Trophy className="w-5 h-5 mr-2 text-[#ffd700] animate-pulse" />
-                Ver Ligas y Retos
+                Ranking Global
               </Link>
             </div>
 
