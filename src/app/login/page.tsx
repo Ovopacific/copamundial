@@ -19,7 +19,7 @@ import { useAuth } from "@/lib/auth-context";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, refreshProfile } = useAuth();
 
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
@@ -205,7 +205,10 @@ export default function LoginPage() {
         inviteCodeUsed: inviteCode
       });
 
-      // Reset
+      // Signal auth-context that profile now exists (prevents ghost-user logout)
+      await refreshProfile();
+
+      // Reset and go home
       setNewGoogleUser(null);
       setStep("auth");
       setInviteCode("");

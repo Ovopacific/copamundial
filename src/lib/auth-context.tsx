@@ -15,6 +15,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   hasProfile: boolean | null;
+  refreshProfile: () => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -23,6 +24,7 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
   hasProfile: null,
+  refreshProfile: async () => {},
   signInWithGoogle: async () => {},
   logout: async () => {},
 });
@@ -44,14 +46,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (currentUser && db) {
         try {
           const userRef = doc(db, "users", currentUser.uid);
-          // Only update lastConnection, do not overwrite other fields
-          await updateDoc(userRef, {
-            lastConnection: new Date()
-          });
-          setHasProfile(true);
+          // First check if the document exists before trying to update
+          const userSnap = await getDoc(userRef);
+          if (userSnap.exists()) {
+            await updateDoc(userRef, { lastConnection: new Date() });
+            setHasProfile(true);
+          } else {
+            // Document not created yet (mid-registration), don't kick them out yet
+            setHasProfile(false);
+          }
         } catch (error) {
-          // If the document doesn't exist yet (e.g. during registration flow), this will fail
-          console.debug("Could not update last connection yet", error);
+          console.debug("Could not check user profile", error);
           setHasProfile(false);
         }
       } else {
@@ -76,17 +81,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // Called from the login page right after the profile is created,
+  // so hasProfile goes from false -> true without waiting for next onAuthStateChanged
+  const refreshProfile = async () => {
+    if (!auth?.currentUser || !db) return;
+    try {
+      const userRef = doc(db, "users", auth.currentUser.uid);
+      const userSnap = await getDoc(userRef);
+      if (userSnap.exists()) {
+        setHasProfile(true);
+      }
+    } catch (error) {
+      console.debug("refreshProfile error", error);
+    }
+  };
+
   const logout = async () => {
     if (!auth) return;
     try {
       await firebaseSignOut(auth);
+      setHasProfile(null);
     } catch (error) {
       console.error("Error signing out", error);
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, hasProfile, signInWithGoogle, logout }}>
+    <AuthContext.Provider value={{ user, loading, hasProfile, refreshProfile, signInWithGoogle, logout }}>
       {children}
     </AuthContext.Provider>
   );
