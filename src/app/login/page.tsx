@@ -236,7 +236,7 @@ export default function LoginPage() {
       {/* Dynamic Background Image */}
       <div className="absolute inset-0 z-0">
         <img 
-          src="https://images.unsplash.com/photo-1518605368461-1ee7c532066d?q=80&w=2000&auto=format&fit=crop" 
+          src="/world-cup-mega-banner.png" 
           alt="Stadium Background" 
           className="w-full h-full object-cover opacity-30"
         />
