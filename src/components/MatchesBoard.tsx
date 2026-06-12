@@ -151,7 +151,7 @@ export default function MatchesBoard() {
   }
 
   return (
-    <div id="matches-board" className="w-full max-w-5xl mx-auto py-16 px-6">
+    <div id="matches-board" className="w-full max-w-5xl mx-auto py-16 px-4 sm:px-6">
       <div className="mb-12 text-center sm:text-left relative pl-0 sm:pl-6">
         <div className="absolute left-0 top-1 w-1.5 h-14 bg-gradient-to-b from-primary to-secondary rounded-full hidden sm:block"></div>
         <h2 className="text-3xl md:text-5xl font-black text-white mb-3 uppercase tracking-wide">

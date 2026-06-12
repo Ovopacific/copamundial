@@ -93,7 +93,7 @@ export default function MatchCard({ match, userPrediction, onSavePrediction }: M
     <motion.div
       whileHover={!isLocked ? { scale: 1.02 } : {}}
       className={clsx(
-        "relative p-6 rounded-2xl glass-panel transition-all duration-300",
+        "relative p-4 sm:p-6 rounded-2xl glass-panel transition-all duration-300",
         match.status === "live" ? "border-red-500/30 glow-secondary" : "hover:glow-primary"
       )}
     >
@@ -130,15 +130,15 @@ export default function MatchCard({ match, userPrediction, onSavePrediction }: M
       )}
 
       {/* Match Teams & Score */}
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex items-center justify-between gap-2 sm:gap-4">
         {/* Home Team */}
-        <div className="flex flex-col items-center flex-1 gap-3">
-          <div className="text-4xl">{match.homeFlag}</div>
-          <span className="font-bold text-white text-center">{match.homeTeam}</span>
+        <div className="flex flex-col items-center flex-1 min-w-0 gap-2 sm:gap-3">
+          <div className="text-3xl sm:text-4xl">{match.homeFlag}</div>
+          <span className="font-bold text-white text-center text-xs sm:text-base break-words w-full select-none">{match.homeTeam}</span>
         </div>
 
         {/* Score Inputs / Result */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-3">
           <input
             type="number"
             min="0"
@@ -146,9 +146,9 @@ export default function MatchCard({ match, userPrediction, onSavePrediction }: M
             value={isStarted ? (match.homeScore ?? homeScore) : homeScore}
             onChange={(e) => setHomeScore(e.target.value)}
             disabled={isLocked}
-            className="w-16 h-16 text-center text-2xl font-black bg-dark-surface border border-dark-border rounded-xl text-white focus:ring-2 focus:ring-primary focus:border-transparent transition-all disabled:opacity-80 disabled:cursor-not-allowed"
+            className="w-12 h-12 sm:w-16 sm:h-16 text-center text-lg sm:text-2xl font-black bg-dark-surface border border-dark-border rounded-xl text-white focus:ring-2 focus:ring-primary focus:border-transparent transition-all disabled:opacity-80 disabled:cursor-not-allowed"
           />
-          <span className="text-gray-500 font-bold text-xl">VS</span>
+          <span className="text-gray-500 font-bold text-sm sm:text-xl">VS</span>
           <input
             type="number"
             min="0"
@@ -156,14 +156,14 @@ export default function MatchCard({ match, userPrediction, onSavePrediction }: M
             value={isStarted ? (match.awayScore ?? awayScore) : awayScore}
             onChange={(e) => setAwayScore(e.target.value)}
             disabled={isLocked}
-            className="w-16 h-16 text-center text-2xl font-black bg-dark-surface border border-dark-border rounded-xl text-white focus:ring-2 focus:ring-primary focus:border-transparent transition-all disabled:opacity-80 disabled:cursor-not-allowed"
+            className="w-12 h-12 sm:w-16 sm:h-16 text-center text-lg sm:text-2xl font-black bg-dark-surface border border-dark-border rounded-xl text-white focus:ring-2 focus:ring-primary focus:border-transparent transition-all disabled:opacity-80 disabled:cursor-not-allowed"
           />
         </div>
 
         {/* Away Team */}
-        <div className="flex flex-col items-center flex-1 gap-3">
-          <div className="text-4xl">{match.awayFlag}</div>
-          <span className="font-bold text-white text-center">{match.awayTeam}</span>
+        <div className="flex flex-col items-center flex-1 min-w-0 gap-2 sm:gap-3">
+          <div className="text-3xl sm:text-4xl">{match.awayFlag}</div>
+          <span className="font-bold text-white text-center text-xs sm:text-base break-words w-full select-none">{match.awayTeam}</span>
         </div>
       </div>
 
