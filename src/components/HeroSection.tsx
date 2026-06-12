@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Trophy, ArrowRight, Zap, Target, BarChart2, ShieldCheck, Sparkles, Flame, Clock } from "lucide-react";
+import { Trophy, ArrowRight, Zap, Target, BarChart2, ShieldCheck, Sparkles, Flame } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -10,7 +10,6 @@ import Link from "next/link";
 export default function HeroSection() {
   const { user } = useAuth();
   const router = useRouter();
-  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [currentSlide, setCurrentSlide] = useState(0);
 
   const slides = [
@@ -96,31 +95,7 @@ export default function HeroSection() {
     return () => clearInterval(timer);
   }, []);
 
-  // 2026 World Cup Countdown (Target: June 11, 2026)
-  useEffect(() => {
-    const targetDate = new Date("2026-06-11T12:00:00").getTime();
-    
-    const updateCountdown = () => {
-      const now = new Date().getTime();
-      const difference = targetDate - now;
-      
-      if (difference <= 0) {
-        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-        return;
-      }
-      
-      const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((difference % (1000 * 60)) / 1000);
-      
-      setTimeLeft({ days, hours, minutes, seconds });
-    };
 
-    updateCountdown();
-    const interval = setInterval(updateCountdown, 1000);
-    return () => clearInterval(interval);
-  }, []);
 
   const handleGetStarted = () => {
     if (user) {
@@ -191,32 +166,7 @@ export default function HeroSection() {
               La máxima experiencia de apuestas y pronósticos deportivos de estilo **EA Sports Ultimate Team**. Acierta en vivo, desafía amigos en ligas de honor, y gana premios épicos de la copa del mundo.
             </p>
 
-            {/* Premium Countdown Clock */}
-            <div className="mb-10 w-full max-w-xl">
-              <span className="text-xs font-black tracking-widest text-[#ffd700] uppercase mb-3 flex items-center gap-1.5">
-                <Clock className="w-4 h-4 text-[#ffd700] animate-spin" style={{ animationDuration: "10s" }} />
-                CUENTA REGRESIVA PARA LA PATADA INICIAL:
-              </span>
-              <div className="grid grid-cols-4 gap-1.5 sm:gap-3">
-                {[
-                  { value: timeLeft.days, label: "DÍAS" },
-                  { value: timeLeft.hours, label: "HORAS" },
-                  { value: timeLeft.minutes, label: "MINS" },
-                  { value: timeLeft.seconds, label: "SEGS" }
-                ].map((item, index) => (
-                  <div key={index} className="glass-panel rounded-xl sm:rounded-2xl p-2 sm:p-4 flex flex-col items-center justify-center border border-white/5 shadow-[0_4px_20px_rgba(0,0,0,0.4)] relative overflow-hidden group hover:border-[#ffd700]/30 transition-all duration-300">
-                    {/* Glowing golden base line */}
-                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-[#ffd700] to-secondary opacity-80" />
-                    <span className="text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-tight leading-none text-glow mb-1">
-                      {String(item.value).padStart(2, "0")}
-                    </span>
-                    <span className="text-[10px] text-gray-400 font-extrabold tracking-widest">
-                      {item.label}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
+
 
             <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
               <button 
