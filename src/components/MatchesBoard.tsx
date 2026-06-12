@@ -105,8 +105,8 @@ export default function MatchesBoard() {
       
       const modsCount = existingPred ? (existingPred.modificationsCount || 0) : 0;
       
-      if (existingPred && modsCount >= 2) {
-        alert("Has alcanzado el máximo de cambios permitidos (2) para este partido.");
+      if (existingPred && modsCount >= 1) {
+        alert("Has alcanzado el máximo de cambios permitidos (1) para este partido.");
         return;
       }
       
@@ -119,7 +119,7 @@ export default function MatchesBoard() {
         });
       }
 
-      const isNowLocked = (existingPred ? modsCount + 1 : 0) >= 2;
+      const isNowLocked = (existingPred ? modsCount + 1 : 0) >= 1;
 
       await setDoc(doc(db, "predictions", predId), {
         userId: user.uid,

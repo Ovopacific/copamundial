@@ -21,7 +21,7 @@ export default function MatchCard({ match, userPrediction, onSavePrediction }: M
 
   const isStarted = match.status !== "pending";
   const modsCount = userPrediction?.modificationsCount || 0;
-  const isModsLocked = modsCount >= 2;
+  const isModsLocked = modsCount >= 1;
   const isTimeLocked = timeRemaining !== null && (timeRemaining.d <= 0 && timeRemaining.h <= 0 && timeRemaining.m <= 0 && timeRemaining.s <= 0);
   
   const isLocked = isStarted || isTimeLocked || isModsLocked || (userPrediction?.locked === true);
@@ -172,7 +172,7 @@ export default function MatchCard({ match, userPrediction, onSavePrediction }: M
         <div className="mt-6 flex flex-col gap-3">
           <div className="flex items-center justify-between px-2">
             <span className="text-xs font-bold text-gray-500 uppercase">
-              Cambios: <span className={clsx("text-white", modsCount >= 2 && "text-red-500")}>{modsCount}/2</span>
+              Cambios: <span className={clsx("text-white", modsCount >= 1 && "text-red-500")}>{modsCount}/1</span>
             </span>
             {isModsLocked && (
               <span className="text-xs font-bold text-red-500 flex items-center gap-1">
