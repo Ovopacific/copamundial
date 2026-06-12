@@ -236,8 +236,8 @@ export default function LoginPage() {
       {/* Dynamic Background Image */}
       <div className="absolute inset-0 z-0">
         <img 
-          src="/world-cup-mega-banner.png" 
-          alt="Stadium Background" 
+          src="/colombia-stadium-login-bg.png" 
+          alt="Colombia Stadium Background" 
           className="w-full h-full object-cover opacity-30"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-black/40" />
