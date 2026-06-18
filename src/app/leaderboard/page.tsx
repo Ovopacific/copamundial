@@ -30,8 +30,7 @@ export default function LeaderboardPage() {
 
     const q = query(
       collection(db, "users"),
-      orderBy("points", "desc"),
-      limit(20)
+      orderBy("points", "desc")
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
