@@ -42,6 +42,8 @@ export default function AdminPage() {
   const [newMatch, setNewMatch] = useState({
     homeTeam: "", awayTeam: "", homeFlag: "", awayFlag: "", date: ""
   });
+  
+  const [recalculating, setRecalculating] = useState(false);
 
   // Verify Admin Role in Firestore
   useEffect(() => {
@@ -219,6 +221,77 @@ export default function AdminPage() {
       setSavingId(null);
     }
   };
+
+  const handleRecalculateAllPoints = async () => {
+    if (!db) return;
+    const confirmRecalc = window.confirm("¿Estás seguro de que deseas recalcular los puntos de TODOS los usuarios? Esto recalculará los puntos basándose únicamente en los marcadores exactos de los partidos finalizados.");
+    if (!confirmRecalc) return;
+
+    setRecalculating(true);
+    try {
+      // 1. Get all matches
+      const matchesSnap = await getDocs(collection(db, "matches"));
+      const allMatches: Match[] = [];
+      matchesSnap.forEach(d => {
+        const data = d.data();
+        allMatches.push({
+          ...data,
+          id: d.id,
+          date: data.date?.toDate ? data.date.toDate() : new Date(data.date)
+        } as Match);
+      });
+
+      // 2. Get all predictions
+      const predsSnap = await getDocs(collection(db, "predictions"));
+      const allPredictions: Prediction[] = [];
+      predsSnap.forEach(d => {
+        allPredictions.push({
+          id: d.id,
+          ...d.data()
+        } as Prediction);
+      });
+
+      // 3. Get all users
+      const usersSnap = await getDocs(collection(db, "users"));
+      
+      let updatedCount = 0;
+
+      for (const userDoc of usersSnap.docs) {
+        const userId = userDoc.id;
+        const userPreds = allPredictions.filter(p => p.userId === userId);
+        
+        let totalPoints = 0;
+        let exactCount = 0;
+        let correctCount = 0;
+
+        for (const pred of userPreds) {
+          const match = allMatches.find(m => m.id === pred.matchId);
+          if (match && match.status === "finished") {
+            const pointsResult = calculatePredictionPoints(match, pred);
+            totalPoints += pointsResult.pointsEarned;
+            if (pointsResult.isExactScore) exactCount++;
+            if (pointsResult.isCorrectResult) correctCount++;
+          }
+        }
+
+        // Update user
+        await updateDoc(doc(db, "users", userId), {
+          points: totalPoints,
+          exactScores: exactCount,
+          correctResults: correctCount
+        });
+        updatedCount++;
+      }
+
+      alert(`¡Puntos recalculados exitosamente! Se actualizaron ${updatedCount} usuarios.`);
+    } catch (error) {
+      console.error("Error recalculating points:", error);
+      alert("Error al recalcular los puntos.");
+    } finally {
+      setRecalculating(false);
+    }
+  };
+
   const handleDeleteMatch = async (matchId: string) => {
     if (!db) return;
     const confirmDelete = window.confirm("¿Estás seguro de que deseas eliminar este partido? Esta acción no se puede deshacer y los pronósticos asociados quedarán huérfanos.");
@@ -285,16 +358,25 @@ export default function AdminPage() {
 
   return (
     <div className="flex flex-col flex-1 py-12 px-6 max-w-6xl mx-auto w-full">
-      <div className="flex items-center gap-4 mb-10">
-        <div className="p-3 rounded-xl bg-primary/20 glow-primary/10">
-          <Settings className="w-8 h-8 text-primary" />
-        </div>
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-3xl font-bold text-white">Panel de Control</h1>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-10 w-full">
+        <div className="flex items-center gap-4">
+          <div className="p-3 rounded-xl bg-primary/20 glow-primary/10">
+            <Settings className="w-8 h-8 text-primary" />
           </div>
-          <p className="text-gray-400">Gestiona partidos, resultados y calcula puntos en Firestore.</p>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-3xl font-bold text-white">Panel de Control</h1>
+            </div>
+            <p className="text-gray-400">Gestiona partidos, resultados y calcula puntos en Firestore.</p>
+          </div>
         </div>
+        <button
+          onClick={handleRecalculateAllPoints}
+          disabled={recalculating}
+          className="w-full sm:w-auto px-5 py-3 rounded-xl font-bold text-black bg-primary hover:bg-white transition-colors shadow-[0_0_15px_rgba(0,240,255,0.2)] disabled:opacity-50"
+        >
+          {recalculating ? "Recalculando..." : "Recalcular Todos los Puntos"}
+        </button>
       </div>
 
       {/* DASHBOARD STATS */}
