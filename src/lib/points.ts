@@ -19,13 +19,12 @@ export function calculatePredictionPoints(match: Match, prediction: Prediction):
     return { pointsEarned: 5, isExactScore: true, isCorrectResult: true };
   }
 
-  // Correct Result (Winner or Tie) -> 3 points
   const actualDiff = actualHome - actualAway;
   const predDiff = predHome - predAway;
 
-  // Sign function helps determine winner (1 for Home, -1 for Away, 0 for Tie)
+  // Correct Result (Winner or Tie) -> 0 points (disabled 3 points reward per user request)
   if (Math.sign(actualDiff) === Math.sign(predDiff)) {
-    return { pointsEarned: 3, isExactScore: false, isCorrectResult: true };
+    return { pointsEarned: 0, isExactScore: false, isCorrectResult: true };
   }
 
   // Incorrect
