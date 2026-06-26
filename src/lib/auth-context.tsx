@@ -138,9 +138,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           </div>
           
           <h1 className="text-3xl sm:text-4xl font-black text-white mb-4 uppercase tracking-tight leading-tight">
-            Plataforma en<br/>
+            Plataforma<br/>
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#ff0055] to-primary text-glow">
-              Mantenimiento
+              Fuera de Servicio
             </span>
           </h1>
           
