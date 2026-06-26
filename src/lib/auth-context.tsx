@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { 
   User, 
   onAuthStateChanged, 
@@ -121,9 +122,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const pathname = usePathname();
   const isAdmin = user && user.email === "yolfranllecastillo@gmail.com";
 
-  if (maintenanceMode && !isAdmin) {
+  if (maintenanceMode && !isAdmin && pathname !== "/login") {
     return (
       <div className="min-h-screen bg-black flex flex-col items-center justify-center p-6 text-center relative overflow-hidden">
         {/* Glowing background details */}
@@ -146,9 +148,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             Estamos realizando mejoras en el servidor para ofrecerte una experiencia increíble. Volveremos muy pronto. ¡Gracias por tu paciencia! ⚽🇨🇴
           </p>
           
-          <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden relative">
+          <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden relative mb-6">
             <div className="absolute top-0 bottom-0 left-0 w-full bg-gradient-to-r from-[#ff0055] to-primary rounded-full animate-pulse" />
           </div>
+
+          <a 
+            href="/login" 
+            className="text-[11px] text-gray-600 hover:text-primary transition-colors font-bold uppercase tracking-wider"
+          >
+            Acceso Administrador
+          </a>
         </div>
       </div>
     );
