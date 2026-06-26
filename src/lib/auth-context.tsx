@@ -148,16 +148,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             Estamos realizando mejoras en el servidor para ofrecerte una experiencia increíble. Volveremos muy pronto. ¡Gracias por tu paciencia! ⚽🇨🇴
           </p>
           
-          <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden relative mb-6">
+          <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden relative">
             <div className="absolute top-0 bottom-0 left-0 w-full bg-gradient-to-r from-[#ff0055] to-primary rounded-full animate-pulse" />
           </div>
-
-          <a 
-            href="/login" 
-            className="text-[11px] text-gray-600 hover:text-primary transition-colors font-bold uppercase tracking-wider"
-          >
-            Acceso Administrador
-          </a>
         </div>
       </div>
     );
