@@ -44,6 +44,8 @@ export default function AdminPage() {
   });
   
   const [recalculating, setRecalculating] = useState(false);
+  const [maintenanceActive, setMaintenanceActive] = useState(false);
+  const [togglingMaintenance, setTogglingMaintenance] = useState(false);
 
   // Verify Admin Role in Firestore
   useEffect(() => {
@@ -88,6 +90,21 @@ export default function AdminPage() {
 
     checkAdmin();
   }, [user]);
+
+  // Subscribe to Maintenance Mode status
+  useEffect(() => {
+    if (!db || !isAdmin) return;
+    const unsubscribe = onSnapshot(doc(db, "settings", "maintenance"), (docSnap) => {
+      if (docSnap.exists()) {
+        setMaintenanceActive(!!docSnap.data().active);
+      } else {
+        setMaintenanceActive(false);
+      }
+    }, (error) => {
+      console.error("Error fetching maintenance status:", error);
+    });
+    return () => unsubscribe();
+  }, [isAdmin]);
 
   // Load matches from Firestore in real-time
   useEffect(() => {
@@ -219,6 +236,24 @@ export default function AdminPage() {
       alert("Error al guardar cambios en el partido.");
     } finally {
       setSavingId(null);
+    }
+  };
+
+  const handleToggleMaintenance = async (active: boolean) => {
+    if (!db) return;
+    setTogglingMaintenance(true);
+    try {
+      await setDoc(doc(db, "settings", "maintenance"), {
+        active: active,
+        updatedAt: new Date(),
+        updatedBy: user?.uid
+      });
+      alert(active ? "Plataforma puesta FUERA DE SERVICIO." : "Plataforma HABILITADA y en servicio.");
+    } catch (error) {
+      console.error("Error setting maintenance status:", error);
+      alert("Error al cambiar el estado de mantenimiento.");
+    } finally {
+      setTogglingMaintenance(false);
     }
   };
 
@@ -358,7 +393,7 @@ export default function AdminPage() {
 
   return (
     <div className="flex flex-col flex-1 py-12 px-6 max-w-6xl mx-auto w-full">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-10 w-full">
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mb-10 w-full">
         <div className="flex items-center gap-4">
           <div className="p-3 rounded-xl bg-primary/20 glow-primary/10">
             <Settings className="w-8 h-8 text-primary" />
@@ -370,13 +405,32 @@ export default function AdminPage() {
             <p className="text-gray-400">Gestiona partidos, resultados y calcula puntos en Firestore.</p>
           </div>
         </div>
-        <button
-          onClick={handleRecalculateAllPoints}
-          disabled={recalculating}
-          className="w-full sm:w-auto px-5 py-3 rounded-xl font-bold text-black bg-primary hover:bg-white transition-colors shadow-[0_0_15px_rgba(0,240,255,0.2)] disabled:opacity-50"
-        >
-          {recalculating ? "Recalculando..." : "Recalcular Todos los Puntos"}
-        </button>
+        <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+          {maintenanceActive ? (
+            <button
+              onClick={() => handleToggleMaintenance(false)}
+              disabled={togglingMaintenance}
+              className="w-full sm:w-auto px-5 py-3 rounded-xl font-bold text-white bg-green-600 hover:bg-green-500 transition-colors shadow-[0_0_15px_rgba(34,197,94,0.2)] disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              🟢 Habilitar Página
+            </button>
+          ) : (
+            <button
+              onClick={() => handleToggleMaintenance(true)}
+              disabled={togglingMaintenance}
+              className="w-full sm:w-auto px-5 py-3 rounded-xl font-bold text-white bg-red-600 hover:bg-red-500 transition-colors shadow-[0_0_15px_rgba(239,68,68,0.2)] disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              🔴 Fuera de Servicio
+            </button>
+          )}
+          <button
+            onClick={handleRecalculateAllPoints}
+            disabled={recalculating}
+            className="w-full sm:w-auto px-5 py-3 rounded-xl font-bold text-black bg-primary hover:bg-white transition-colors shadow-[0_0_15px_rgba(0,240,255,0.2)] disabled:opacity-50"
+          >
+            {recalculating ? "Recalculando..." : "Recalcular Todos los Puntos"}
+          </button>
+        </div>
       </div>
 
       {/* DASHBOARD STATS */}
